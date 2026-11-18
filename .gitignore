@@ -1,0 +1,2 @@
+echo "data/cog/cog-20.cog.csv" >> .gitignore
+echo "data/cog/cog-20.fa" >> .gitignore

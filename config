@@ -1,0 +1,8 @@
+SCRIPT=`realpath -s $0`
+SCRIPTPATH=`dirname $SCRIPT`
+
+data_dir=$SCRIPTPATH/data
+pipeline_dir=$SCRIPTPATH/pipeline
+pipeline_config=$pipeline_dir/config_pipeline
+cog_path=$SCRIPTPATH/data/cog
+script_path=$SCRIPTPATH/scripts

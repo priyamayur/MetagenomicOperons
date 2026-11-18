@@ -1,0 +1,14 @@
+#!/bin/bash
+
+SCRIPT=$(realpath "$0")
+SCRIPTPATH=$(dirname "$SCRIPT")
+
+# Check whether user requested an individual stage
+for arg in "$@"; do
+    if [ "$arg" = "-s" ] || [ "$arg" = "--stage" ]; then
+        exec "$SCRIPTPATH/run_poem_stage.sh" "$@"
+    fi
+done
+
+# Otherwise, execute the complete POEM pipeline
+exec "$SCRIPTPATH/run_poem.sh" "$@"

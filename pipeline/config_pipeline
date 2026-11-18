@@ -1,0 +1,37 @@
+SCRIPT=`realpath -s $0`
+SCRIPTPATH=`dirname $SCRIPT`
+SCRIPTGRANDPARENTPATH=`dirname $(dirname $SCRIPT)`
+
+
+# megahit_input_path1=$SCRIPTPATH/../data/test_data/eco_51.fq
+# megahit_input_path2=$SCRIPTPATH/../data/test_data/eco_52.fq
+
+# megahit_output_path=$SCRIPTPATH/../data/output/assembly_output/megahit_output
+
+# spades_output_path=$SCRIPTPATH/../data/output/assembly_output/spades_output
+
+# idba_output_path=$SCRIPTPATH/../data/output/assembly_output/idba_output
+
+# megahit_output_path=$SCRIPTPATH/../data/output/assembly_output/megahit_output
+
+# assembly_output_path=$SCRIPTPATH/../data/output/assembly_output
+
+# prodigal_output_path=$(realpath data)/output/gene_prediction_output/prodigal_output
+
+script_path=$SCRIPTGRANDPARENTPATH/scripts
+
+cog_path=$SCRIPTGRANDPARENTPATH/data/cog
+
+cdhit_threshold=0.98
+
+operon_model_path=$SCRIPTGRANDPARENTPATH/data/operon_model
+
+# diamond_output_path=$(realpath data)/output/diamond_output
+
+# cdhit_output_path=$(realpath data)/output/cdhit_output
+# cdhit_threshold=0.98
+
+# operon_output_path=$(realpath data)/output/operon_prediction_output
+# operon_model_path=$(realpath data)/operon_model
+
+# core_operon_path=$(realpath data)/output/core_operon_output

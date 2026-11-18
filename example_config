@@ -1,0 +1,16 @@
+SCRIPT=`realpath -s $0`
+SCRIPTPATH=`dirname $SCRIPT`
+
+prediction_dir=$SCRIPTPATH
+
+output_dir=$SCRIPTPATH/example_data/output_example
+
+input_path1=$SCRIPTPATH/example_data/input_data/eco_51.fq
+input_path2=$SCRIPTPATH/example_data/input_data/eco_52.fq
+
+# megahit_output_path=$SCRIPTPATH/example_data/output/assembly_output/megahit_output
+
+# spades_output_path=$SCRIPTPATH/example_data/output/assembly_output/spades_output
+
+# idba_output_path=$SCRIPTPATH/example_data/output/assembly_output/idba_output
+
