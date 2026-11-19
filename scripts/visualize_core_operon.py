@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """POEM Core Operon Explorer: Leiden communities and predicted cores."""
 
@@ -30,7 +29,7 @@ def parse_args():
 
     parser.add_argument(
         "-cores", "--cores", required=True,
-        help="Path to path_quasi_hybrid_cores.csv"
+        help="Path to core_operons.csv"
     )
 
     parser.add_argument(
@@ -98,9 +97,11 @@ def load_data(args):
                 f"Invalid community ID: {community_id}"
             )
 
+        genes = parse_genes(row["genes"])
         core = {
-            "id": str(index),
-            "genes": parse_genes(row["genes"]),
+            "id": str(row.get("core_id", index)),
+            "genes": genes,
+            "size": int(row.get("core_size", len(genes))),
             "score": float(row["score"]),
             "density": float(row["density"])
         }
@@ -155,7 +156,30 @@ def load_data(args):
 # 3. Prepare and validate Leiden graphs
 # --------------------------------------------------
 
-def prepare_networks(communities, cores):
+def load_edge_metrics(graph_path):
+    """Read edge counts and normalized weights from the community edge table."""
+    edge_file = Path(graph_path).with_name("community_edges.csv")
+    if not edge_file.exists():
+        return {}
+
+    columns = {"community_id", "source", "target", "operon_count", "fisher_weight_normalized"}
+    rows = pd.read_csv(edge_file, usecols=lambda column: column in columns)
+    missing = columns - set(rows.columns)
+    if missing:
+        raise ValueError(f"{edge_file} is missing columns: {sorted(missing)}")
+
+    metrics = {}
+    for row in rows.itertuples(index=False):
+        endpoints = sorted((str(row.source).strip(), str(row.target).strip()))
+        metrics[(int(row.community_id), *endpoints)] = {
+            "operon_count": int(row.operon_count),
+            "fisher_weight_normalized": float(row.fisher_weight_normalized),
+        }
+    return metrics
+
+
+def prepare_networks(communities, cores, edge_metrics=None):
+    edge_metrics = edge_metrics or {}
 
     networks = {}
 
@@ -184,7 +208,8 @@ def prepare_networks(communities, cores):
             G.add_edge(
                 source,
                 target,
-                weight=float(weight)
+                weight=float(weight),
+                **edge_metrics.get((cid, *sorted((source, target))), {}),
             )
 
         # Validate community connectivity
@@ -382,12 +407,22 @@ def make_elements(
         if target not in visible:
             continue
 
+        fisher_weight = float(attrs["weight"])
+        raw_count = attrs.get("operon_count")
+        label = f"Fisher {fisher_weight:.2f}"
+        if raw_count is not None:
+            label = f"Raw {raw_count:,} | {label}"
+
         elements.append({
             "data": {
                 "id": f"{prefix}edge_{index}",
                 "source": prefix + source,
                 "target": prefix + target,
-                "weight": float(attrs["weight"])
+                "weight": fisher_weight,
+                "fisher_weight": fisher_weight,
+                "operon_count": raw_count,
+                "fisher_weight_normalized": attrs.get("fisher_weight_normalized"),
+                "edge_label": label,
             },
 
             "classes": (
@@ -406,35 +441,35 @@ def make_elements(
 
 def create_app(networks, cores, descriptions):
 
-    # Only communities containing predicted cores
-    available = [
-        cid for cid in networks
-        if cores.get(cid)
-    ]
-
-    if not available:
-        raise ValueError(
-            "No Leiden communities containing final cores."
-        )
-
     app = Dash(__name__)
+    all_cores = [core for group in cores.values() for core in group]
+    core_sizes = sorted({core["size"] for core in all_cores})
+    scores = [core["score"] for core in all_cores]
+    min_score = min(scores, default=0.0)
+    max_score = max(scores, default=0.0)
+    score_span = max_score - min_score
 
-    first_community = available[0]
+    def matching_cores(cid, sizes, score_range):
+        low, high = score_range or (min_score, max_score)
+        return [
+            core for core in cores.get(cid, [])
+            if (not sizes or core["size"] in sizes) and low <= core["score"] <= high
+        ]
 
-    community_options = []
+    def community_choices(sizes, score_range):
+        options = []
+        for cid, network in networks.items():
+            count = len(matching_cores(cid, sizes, score_range))
+            if count:
+                n_nodes = network["graph"].number_of_nodes()
+                options.append({
+                    "label": f"Community {cid} ({n_nodes} COGs, {count} cores)",
+                    "value": cid,
+                })
+        return options
 
-    for cid in available:
-
-        G = networks[cid]["graph"]
-
-        community_options.append({
-            "label": (
-                f"Community {cid} "
-                f"({G.number_of_nodes()} COGs, "
-                f"{len(cores[cid])} cores)"
-            ),
-            "value": cid
-        })
+    community_options = community_choices([], None)
+    first_community = community_options[0]["value"] if community_options else None
 
     # ----------------------------------------------
     # Layout
@@ -446,6 +481,17 @@ def create_app(networks, cores, descriptions):
 
         # Community and core selection
         html.Div([
+
+            html.Div([
+                html.Label("Core Size"),
+                dcc.Dropdown(
+                    id="core-size",
+                    options=[{"label": f"{size} COGs", "value": size} for size in core_sizes],
+                    value=[],
+                    multi=True,
+                    placeholder="All core sizes",
+                ),
+            ], style={"flex": 1, "minWidth": "200px"}),
 
             html.Div([
 
@@ -484,6 +530,24 @@ def create_app(networks, cores, descriptions):
             "flexWrap": "wrap"
         }),
 
+        html.Div([
+            html.Label("Core Score Range"),
+            html.Div(
+                dcc.RangeSlider(
+                    id="core-score-range",
+                    min=min_score,
+                    max=max_score if score_span else min_score + 1.0,
+                    step=score_span / 200 if score_span else 1.0,
+                    value=[min_score, max_score],
+                    marks={min_score: f"{min_score:.4g}", max_score: f"{max_score:.4g}"},
+                    allowCross=False,
+                    disabled=not score_span,
+                ),
+                style={} if score_span else {"display": "none"},
+            ),
+            html.Div(id="score-filter-summary"),
+        ], style={"marginTop": "18px"}),
+
         # Visualization mode
         html.Div([
 
@@ -503,7 +567,12 @@ def create_app(networks, cores, descriptions):
                         "value": "core"
                     }
                 ]
-            )
+            ),
+            dcc.Checklist(
+                id="edge-weights",
+                options=[{"label": " Show edge weights on graph", "value": "show"}],
+                value=[],
+            ),
 
         ], style={"marginTop": "18px"}),
 
@@ -583,26 +652,71 @@ def create_app(networks, cores, descriptions):
     # --------------------------------------------------
 
     @app.callback(
+        Output("community", "options"),
+        Output("community", "value"),
+        Output("score-filter-summary", "children"),
+        Input("core-size", "value"),
+        Input("core-score-range", "value"),
+        State("community", "value"),
+    )
+    def update_communities(sizes, score_range, cid):
+        options = community_choices(sizes, score_range)
+        available = [option["value"] for option in options]
+        selected = cid if cid in available else next(iter(available), None)
+        if not scores:
+            return options, selected, "No predicted cores."
+
+        low, high = score_range or (min_score, max_score)
+        matching_count = sum(len(matching_cores(cid, sizes, score_range)) for cid in available)
+        summary = (
+            f"Dataset range: {min_score:.4g} to {max_score:.4g} | "
+            f"Selected: {low:.4g} to {high:.4g} | "
+            f"{matching_count:,} of {len(scores):,} cores match"
+        )
+        return options, selected, summary
+
+    @app.callback(
         Output("core", "options"),
         Output("core", "value"),
-        Input("community", "value")
+        Input("community", "value"),
+        Input("core-size", "value"),
+        Input("core-score-range", "value"),
+        State("core", "value"),
     )
-    def update_cores(cid):
+    def update_cores(cid, sizes, score_range, core_id):
+        matches = matching_cores(cid, sizes, score_range)
+        options = [
+            {
+                "label": f"Core {core['id']} ({core['size']} COGs, score {core['score']:.2f})",
+                "value": core["id"],
+            }
+            for core in matches
+        ]
+        selected = next((core["id"] for core in matches if core["id"] == core_id), None)
+        if selected is None and matches:
+            selected = matches[0]["id"]
+        return options, selected
 
-        options = []
-
-        for core in cores[cid]:
-
-            options.append({
-                "label": (
-                    f"Core {core['id']} "
-                    f"({len(core['genes'])} COGs, "
-                    f"score {core['score']:.2f})"
-                ),
-                "value": core["id"]
-            })
-
-        return options, cores[cid][0]["id"]
+    @app.callback(
+        Output("network", "stylesheet"),
+        Input("edge-weights", "value"),
+    )
+    def update_edge_labels(selection):
+        if "show" not in (selection or []):
+            return STYLESHEET
+        return [
+            *STYLESHEET,
+            {
+                "selector": "edge",
+                "style": {
+                    "label": "data(edge_label)",
+                    "font-size": 16,
+                    "text-background-color": "#ffffff",
+                    "text-background-opacity": 0.9,
+                    "text-background-padding": "2px",
+                },
+            },
+        ]
 
     # --------------------------------------------------
     # 8. Update Cytoscape network
@@ -614,21 +728,18 @@ def create_app(networks, cores, descriptions):
 
         Input("community", "value"),
         Input("core", "value"),
-        Input("mode", "value")
+        Input("mode", "value"),
+        Input("core-size", "value"),
+        Input("core-score-range", "value"),
     )
-    def update_network(cid, core_id, mode):
+    def update_network(cid, core_id, mode, sizes, score_range):
+        matches = matching_cores(cid, sizes, score_range)
+        if not matches:
+            return [], "No predicted cores match the current selection."
 
-        if cid is None:
-            return [], "Select a community."
-
-        # Ensure selected core belongs to selected community
         selected_core = next(
-            (
-                core
-                for core in cores[cid]
-                if core["id"] == core_id
-            ),
-            cores[cid][0]
+            (core for core in matches if core["id"] == core_id),
+            matches[0],
         )
 
         network = networks[cid]
@@ -703,9 +814,9 @@ def create_app(networks, cores, descriptions):
             f"Community {cid} | "
             f"{n_nodes} COGs | "
             f"{n_edges} edges | "
-            f"Selected core: "
-            f"{len(selected_core['genes'])} COGs "
-            f"(score {selected_core['score']:.3f})"
+            f"Core {selected_core['id']}: "
+            f"{selected_core['size']} COGs | "
+            f"Core score {selected_core['score']:.3f}"
         )
 
         print(summary, flush=True)
@@ -735,11 +846,16 @@ def create_app(networks, cores, descriptions):
             source = edge["source"].split("__", 1)[-1]
             target = edge["target"].split("__", 1)[-1]
 
-            return (
-                f"Edge: {source} — {target} | "
-                f"Fisher significance weight: "
-                f"{float(edge['weight']):.4f}"
+            raw_count = edge.get("operon_count")
+            normalized = edge.get("fisher_weight_normalized")
+            raw_text = f"{raw_count:,}" if raw_count is not None else "Unavailable"
+            details = (
+                f"Edge: {source} — {target} | Raw operon count: {raw_text} | "
+                f"Fisher weight: {edge['fisher_weight']:.4f}"
             )
+            if normalized is not None:
+                details += f" | Normalized Fisher weight: {normalized:.4f}"
+            return details
 
         if triggered.endswith("tapNodeData") and node:
 
@@ -810,10 +926,8 @@ def main():
 
     communities, cores, descriptions = load_data(args)
 
-    networks = prepare_networks(
-        communities,
-        cores
-    )
+    edge_metrics = load_edge_metrics(args.graph)
+    networks = prepare_networks(communities, cores, edge_metrics)
 
     print(
         f"Loaded {len(communities)} Leiden communities "

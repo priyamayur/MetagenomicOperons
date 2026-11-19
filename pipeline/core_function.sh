@@ -159,7 +159,7 @@ if [ ! -s "$output_folder/leiden_communities.pkl" ]; then
     exit 1
 fi
 
-if [ ! -s "$output_folder/path_quasi_hybrid_cores.csv" ]; then
+if [ ! -s "$output_folder/core_operons.csv" ]; then
     echo "Error: Core-operon results file was not generated."
     exit 1
 fi

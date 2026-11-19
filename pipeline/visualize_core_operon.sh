@@ -1,17 +1,7 @@
-
 #!/bin/bash
-
-# ==================================================
-# 1. Setup
-# ==================================================
 
 SCRIPT=$(realpath -s "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
-
-
-# ==================================================
-# 2. Help message
-# ==================================================
 
 show_usage() {
     cat <<'EOF'
@@ -19,106 +9,66 @@ POEM - Core Operon Visualization
 
 Usage:
   ./poem -s visualize-core-operon -o <poem_results_dir>
+  ./pipeline/visualize_core_operon.sh -coo <core_operon_dir>
 
 Arguments:
-  -o <directory>  Root directory for POEM pipeline results
-  -h, --help      Show this help message
+  -o <directory>    Root directory for POEM results (via ./poem)
+  -coo <directory>  Core-operon output directory (direct script invocation)
+  -h, --help        Show this help message
 
-Input:
-  POEM uses the results generated during core-operon identification.
-
-  Required files:
-    <poem_results_dir>/core_operon_output/leiden_communities.pkl
-    <poem_results_dir>/core_operon_output/path_quasi_hybrid_cores.csv
-
-Visualization:
-  Launches an interactive visualization of Leiden communities
-  and predicted core operons.
+Required inputs:
+  <core_operon_dir>/leiden_communities.pkl
+  <core_operon_dir>/core_operons.csv
+  cog-20.def.tab in the configured COG reference directory
 
 Example:
-  ./poem -s visualize-core-operon -o poem_stage_test
+  ./poem -s visualize-core-operon -o example_data/output_example
 EOF
 }
 
-
-# ==================================================
-# 3. Initialize variables
-# ==================================================
-
 core_operon_path=""
 
-
-# ==================================================
-# 4. Parse command-line arguments
-# ==================================================
-
 while [[ $# -gt 0 ]]; do
-
     case "$1" in
-
         -coo)
-            if [ $# -lt 2 ] || [[ "$2" == -* ]]; then
-                echo "Error: Missing value for $1"
+            if [[ $# -lt 2 || "$2" == -* || -z "$2" ]]; then
+                echo "Error: Missing value for $1" >&2
                 exit 1
             fi
-
             core_operon_path="$2"
             shift 2
             ;;
-
         -h|--help)
             show_usage
             exit 0
             ;;
-
         *)
-            echo "Error: Unknown argument '$1'"
-            show_usage
+            echo "Error: Unknown argument '$1'" >&2
+            show_usage >&2
             exit 1
             ;;
-
     esac
-
 done
 
-
-# ==================================================
-# 5. Load configuration
-# ==================================================
-
-source "$SCRIPTPATH/config_pipeline" || exit 1
-
-
-# ==================================================
-# 6. Validate inputs
-# ==================================================
-
-if [ -z "$core_operon_path" ]; then
-    echo "Error: Core-operon directory is required (-coo)."
+if [[ -z "$core_operon_path" ]]; then
+    echo "Error: Core-operon directory is required (-coo)." >&2
     exit 1
 fi
 
-leiden_graph="${core_operon_path}/leiden_communities.pkl"
-core_file="${core_operon_path}/path_quasi_hybrid_cores.csv"
-cog_def_file="${cog_path}/cog-20.def.tab"
+source "$SCRIPTPATH/config_pipeline" || exit 1
+
+leiden_graph="$core_operon_path/leiden_communities.pkl"
+core_file="$core_operon_path/core_operons.csv"
+cog_def_file="$cog_path/cog-20.def.tab"
 
 for file in "$leiden_graph" "$core_file" "$cog_def_file"; do
-    if [ ! -s "$file" ]; then
-        echo "Error: Required file not found or empty:"
-        echo "  $file"
+    if [[ ! -s "$file" ]]; then
+        printf 'Error: Required file not found or empty: %s\n' "$file" >&2
         exit 1
     fi
 done
 
-
-# ==================================================
-# 7. Launch visualization
-# ==================================================
-
-echo ""
-echo "POEM - Starting core-operon visualization"
-echo "Core-operon directory: $core_operon_path"
-echo ""
+printf '\nPOEM - Starting core-operon visualization\nCore-operon directory: %s\n\n' "$core_operon_path"
 
 python "$script_path/visualize_core_operon.py" \
     -g "$leiden_graph" \
