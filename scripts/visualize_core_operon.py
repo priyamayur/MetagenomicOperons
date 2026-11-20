@@ -483,13 +483,13 @@ def create_app(networks, cores, descriptions):
         html.Div([
 
             html.Div([
-                html.Label("Core Size"),
+                html.Label("Core Operon Size"),
                 dcc.Dropdown(
                     id="core-size",
                     options=[{"label": f"{size} COGs", "value": size} for size in core_sizes],
                     value=[],
                     multi=True,
-                    placeholder="All core sizes",
+                    placeholder="All core operon sizes",
                 ),
             ], style={"flex": 1, "minWidth": "200px"}),
 
@@ -512,7 +512,7 @@ def create_app(networks, cores, descriptions):
 
             html.Div([
 
-                html.Label("Final Predicted Core"),
+                html.Label("Core Operon"),
 
                 dcc.Dropdown(
                     id="core",
@@ -531,7 +531,7 @@ def create_app(networks, cores, descriptions):
         }),
 
         html.Div([
-            html.Label("Core Score Range"),
+            html.Label("Core Operon Score Range"),
             html.Div(
                 dcc.RangeSlider(
                     id="core-score-range",
@@ -563,7 +563,7 @@ def create_app(networks, cores, descriptions):
                         "value": "full"
                     },
                     {
-                        "label": " Final Core Only",
+                        "label": " Core Operon Only",
                         "value": "core"
                     }
                 ]
@@ -669,9 +669,9 @@ def create_app(networks, cores, descriptions):
         low, high = score_range or (min_score, max_score)
         matching_count = sum(len(matching_cores(cid, sizes, score_range)) for cid in available)
         summary = (
-            f"Dataset range: {min_score:.4g} to {max_score:.4g} | "
+            f"Core Operon Score Range: {min_score:.4g} to {max_score:.4g} | "
             f"Selected: {low:.4g} to {high:.4g} | "
-            f"{matching_count:,} of {len(scores):,} cores match"
+            f"{matching_count:,} of {len(scores):,} core operons match"
         )
         return options, selected, summary
 
@@ -816,7 +816,7 @@ def create_app(networks, cores, descriptions):
             f"{n_edges} edges | "
             f"Core {selected_core['id']}: "
             f"{selected_core['size']} COGs | "
-            f"Core score {selected_core['score']:.3f}"
+            f"Core operon score {selected_core['score']:.3f}"
         )
 
         print(summary, flush=True)
