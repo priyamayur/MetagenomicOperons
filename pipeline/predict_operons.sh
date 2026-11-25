@@ -24,8 +24,10 @@ Usage:
 
 Arguments:
   -o <directory>  Root directory for POEM pipeline results
-  --model <name>  Classifier name from model_manifest.json
-                  Default: monocytogenes. Use all_species for the pooled model.
+  --model <name>  Operon prediction classifier (optional).
+                  Default: all_species (pooled classifier).
+                  Select a species-specific classifier using its name from the model manifest file.
+
   -h, --help      Show this help message
 
 Use the same results directory as the earlier stages. POEM predicts
@@ -48,7 +50,7 @@ EOF
 gene_coordinates=""
 assembled_file=""
 output_folder=""
-operon_model="monocytogenes"
+operon_model="all_species"
 
 
 # ==================================================

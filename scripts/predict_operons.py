@@ -33,7 +33,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument("-g", "--gene", required=True, help="gene coordinates in csv")
 parser.add_argument("--model-manifest", type=Path, required=True,
                     help="training manifest for a named classifier")
-parser.add_argument("--model-name", default="monocytogenes",
+parser.add_argument("--model-name", default="all_species",
                     help="classifier key in the training manifest")
 parser.add_argument("-af", "--contigs", required=True, help="metagenomic contigs")
 parser.add_argument("-o", "--output", required=True, default="output", help="output directory name")

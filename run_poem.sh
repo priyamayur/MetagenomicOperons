@@ -18,10 +18,10 @@ show_usage() {
 POEM - Metagenomic Operon Prediction
 
 Usage:
-  poem -1 <R1.fastq> -2 <R2.fastq> -o <poem_results_dir> [-a assembler]
-  poem -af <contigs.fa> -o <poem_results_dir>
-  poem -af <contigs.fa> -gff <genes.gff> -pf <proteins.faa> -o <poem_results_dir>
-  poem --test
+  poem -1 <R1.fastq> -2 <R2.fastq> -o <poem_results_dir> [-a assembler] [--model <name>]
+  poem -af <contigs.fa> -o <poem_results_dir> [--model <name>]
+  poem -af <contigs.fa> -gff <genes.gff> -pf <proteins.faa> -o <poem_results_dir> [--model <name>]
+  poem --test 
 
 Input options:
   -1 <file>       Read 1 paired-end FASTQ file
@@ -37,6 +37,10 @@ Required arguments:
 Optional arguments:
   -a <assembler>  spades, megahit, or idba (default: spades)
                   Only applicable to paired-end reads
+  --model <name>  Operon prediction classifier
+                  Default: all_species (pooled classifier).
+                  Species-specific classifiers can be selected
+                  using their names in model_manifest.json.
   --test          Run POEM using the example dataset
   -h, --help      Show this help message
 
@@ -72,6 +76,7 @@ output_dir=""
 assembler="spades"
 assembler_specified=false
 test_mode=false
+operon_model="all_species"
 
 
 # ==================================================
@@ -88,7 +93,7 @@ while [[ $# -gt 0 ]]; do
 
     case "$1" in
 
-        -1|-2|-af|-gff|-pf|-o|-a)
+        -1|-2|-af|-gff|-pf|-o|-a|--model)
             if [ $# -lt 2 ] || [[ "$2" == -* ]]; then
                 echo "Error: Missing value for $1"
                 exit 1
@@ -101,6 +106,7 @@ while [[ $# -gt 0 ]]; do
                 -gff) gff_input="$2" ;;
                 -pf) protein_input="$2" ;;
                 -o)  output_dir="$2" ;;
+                --model) operon_model="$2" ;;
                 -a)
                     assembler="$2"
                     assembler_specified=true
@@ -256,6 +262,7 @@ echo "POEM - Metagenomic Operon Prediction"
 echo "=================================================="
 echo "Input mode: $input_mode"
 echo "Results directory: $output_dir"
+echo "Operon prediction model: $operon_model"
 
 if [ "$input_mode" = "reads" ]; then
     echo "Read 1: $input_path1"
@@ -393,7 +400,7 @@ echo "------------------------ Step 4: CD-HIT clustering completed successfully 
 
 echo "------------------------ Step 5: Starting operon prediction and processing ------------------------"
 
-run_stage predict-operons
+run_stage predict-operons --model "$operon_model"
 
 echo "------------------------ Step 5: Operon prediction and processing completed successfully ------------------------"
 
