@@ -2,6 +2,20 @@
 
 POEM is a computational pipeline for predicting operons and identifying conserved core operons from metagenomic sequencing data. It supports paired-end sequencing reads, assembled contigs, and existing gene predictions.
 
+## Table of Contents
+
+- [1. Installation](#1-installation)
+- [2. Running POEM](#2-running-poem)
+  - [2.1 Testing POEM](#21-testing-poem-with-the-example-dataset)
+  - [2.2 Running from paired-end reads](#22-option-1-run-complete-pipeline-from-paired-end-reads)
+  - [2.3 Running from assembled contigs](#23-option-2-run-pipeline-from-assembled-contigs)
+  - [2.4 Running from existing gene predictions](#24-option-3-run-pipeline-from-existing-gene-predictions)
+  - [2.5 Running individual pipeline stages](#25-running-individual-pipeline-stages)
+  - [2.6 Command-line help](#26-command-line-help)
+- [3. Pipeline Steps](#3-pipeline-steps)
+- [4. Output Files](#4-output-files)
+- [5. Visualization](#5-visualization)
+
 ## 1. Installation
 
 Clone the POEM repository:
