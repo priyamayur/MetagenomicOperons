@@ -403,6 +403,7 @@ predicted core operons.
 <p align="center">
   <em>POEM's interactive visualization interface.</em>
 </p>
+
 ---
 ### 5.2 Network visualization using Cytoscape
 
