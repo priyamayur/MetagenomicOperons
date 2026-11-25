@@ -37,11 +37,13 @@ For stage-specific help:
   poem -s assembly -h
   poem -s gene-prediction -h
   poem -s core-function -h
+  poem -s predict-operons -h
 
 Examples:
   poem -s assembly -1 R1.fq -2 R2.fq -o results/
   poem -s gene-prediction -o results/
   poem -s predict-operons -o results/
+  poem -s predict-operons -o results/ --model monocytogenes
 EOF
 }
 
@@ -70,6 +72,7 @@ get_stage_script() {
 stage_value=""
 output_folder=""
 assembly_method="spades"
+operon_model="all_species"
 
 read_file_1=""
 read_file_2=""
@@ -102,7 +105,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
 
-        -s|--stage|-a|-1|-2|-o|-af|-gf|-gc|-fpo|-opo|-cdo|-coo)
+        -s|--stage|-a|-1|-2|-o|-af|-gf|-gc|-fpo|-opo|-cdo|-coo|--model)
 
             if [ $# -lt 2 ] || [[ "$2" == -* ]]; then
               if [[ "$1" == "-s" || "$1" == "--stage" ]] &&
@@ -128,6 +131,7 @@ while [[ $# -gt 0 ]]; do
                 -opo) operon_prediction_output="$2" ;;
                 -cdo) cdhit_prediction_output="$2" ;;
                 -coo) core_operon_output="$2" ;;
+                --model) operon_model="$2" ;;
             esac
 
             shift 2
@@ -309,12 +313,14 @@ case "$stage_value" in
         echo "Starting operon prediction..."
         echo "Gene coordinates: $gene_coordinates"
         echo "Assembled contigs: $assembled_file"
+        echo "Operon prediction model: $operon_model"
 
         printf '[1/2] Predicting operons.\n'
         # Step 1: Predict operons
         "$pipeline_dir/predict_operons.sh" \
             -gc "$gene_coordinates" \
             -af "$assembled_file" \
+            --model "$operon_model" \
             -o "$operon_prediction_folder" || exit 1
 
         

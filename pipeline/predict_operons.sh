@@ -39,6 +39,7 @@ Output:
 
 Example:
   ./poem -s predict-operons -o poem_stage_test
+  ./poem -s predict-operons -o results/ --model monocytogenes
 EOF
 }
 
