@@ -34,6 +34,24 @@ conda activate con_env
 
 POEM supports three input options depending on the type of data available and the preprocessing already performed. Users can start with raw paired-end sequencing reads, previously assembled contigs, or existing gene predictions. All three options require an output directory (-o) where the pipeline results will be stored.
 
+### Testing POEM with the example dataset
+
+Before running POEM on custom datasets, users can test the installation
+and pipeline functionality using the provided example dataset.
+
+```bash
+./poem --test
+```
+
+This command runs the complete POEM pipeline using the predefined
+input files and output directory specified in `example_config`.
+
+The test run uses the default metagenomic assembler (`spades`) and
+the default pooled operon prediction classifier (`all_species`).
+
+Upon successful completion, users can explore
+the generated output files and visualize the predicted core operons.
+
 ### Option 1: Run complete pipeline from paired-end reads
 
 This option runs the complete POEM pipeline starting from raw paired-end metagenomic sequencing reads. POEM performs metagenomic assembly, gene prediction, functional annotation, protein clustering, operon prediction, and core-operon identification.
@@ -136,6 +154,80 @@ This option is intended for users who have already performed metagenomic assembl
 | `--model <name>` | Operon prediction classifier | `all_species` |
 
 The GFF and protein FASTA files must correspond to the same assembled contigs. Both annotation and protein translation files must be provided. POEM standardizes identifiers for downstream processing.
+
+### Running individual pipeline stages
+
+POEM supports independent execution of individual pipeline stages,
+allowing users to run specific analyses, resume an existing analysis,
+or troubleshoot individual steps without rerunning the complete pipeline.
+
+The general syntax for stage-wise execution is:
+
+```bash
+./poem -s <stage> -o <results_directory> [options]
+```
+
+The following stages are available:
+
+| Stage | Description |
+|---|---|
+| `assembly` | Assemble paired-end sequencing reads |
+| `gene-prediction` | Predict protein-coding genes |
+| `function-prediction` | Assign COG annotations |
+| `cdhit` | Cluster protein sequences |
+| `predict-operons` | Predict and process operons |
+| `core-function` | Identify core operons |
+| `visualize-core-operon` | Visualize Leiden communities and predicted core operons |
+
+For example, to run operon prediction and processing using an
+existing POEM results directory:
+
+```bash
+./poem -s predict-operons -o results/
+```
+
+To select an alternative operon prediction classifier:
+
+```bash
+./poem -s predict-operons -o results/ --model monocytogenes
+```
+
+Stage-wise execution requires the corresponding upstream input files
+to be available.
+
+### Command-line help
+
+POEM provides command-line help for both full pipeline execution and
+individual pipeline stages.
+
+**Full pipeline help**
+
+Display the supported input options, required and optional parameters,
+default settings, and usage examples:
+
+```bash
+./poem --help
+```
+
+**Stage-wise execution help**
+
+Display the available pipeline stages and general stage-wise usage:
+
+```bash
+./poem -s --help
+```
+
+**Stage-specific help**
+
+Display the required and optional parameters for a particular stage:
+
+```bash
+./poem -s assembly --help
+./poem -s predict-operons --help
+./poem -s core-function --help
+```
+
+Both `-h` and `--help` can be used to display help messages.
 
 ## 3. Pipeline Steps
 
@@ -248,28 +340,3 @@ To launch visualization independently:
 
 Open the local URL displayed in the terminal to view the interactive network.
 
-## 6. Example Dataset
-
-Run POEM using the included example dataset:
-
-```bash
-./poem --test
-```
-
-This runs the pipeline using paths defined in `example_config`.
-
-## 7. Help
-
-Display the available arguments:
-
-```bash
-./poem --help
-```
-
-POEM also supports individual pipeline stages for testing and debugging:
-
-```bash
-./poem -s gene-prediction -o results/
-```
-
-Stage-wise execution requires the corresponding upstream input files to be available.
