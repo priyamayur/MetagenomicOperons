@@ -34,7 +34,7 @@ conda activate con_env
 
 POEM supports three input options depending on the type of data available and the preprocessing already performed. Users can start with raw paired-end sequencing reads, previously assembled contigs, or existing gene predictions. All three options require an output directory (-o) where the pipeline results will be stored.
 
-### Testing POEM with the example dataset
+### 2.1 Testing POEM with the example dataset
 
 Before running POEM on custom datasets, users can test the installation
 and pipeline functionality using the provided example dataset.
@@ -52,7 +52,9 @@ the default pooled operon prediction classifier (`all_species`).
 Upon successful completion, users can explore
 the generated output files and visualize the predicted core operons.
 
-### Option 1: Run complete pipeline from paired-end reads
+---
+
+### 2.2 Option 1: Run complete pipeline from paired-end reads
 
 This option runs the complete POEM pipeline starting from raw paired-end metagenomic sequencing reads. POEM performs metagenomic assembly, gene prediction, functional annotation, protein clustering, operon prediction, and core-operon identification.
 
@@ -105,7 +107,9 @@ For example, to run POEM using MEGAHIT and the *Listeria monocytogenes* operon p
     -o results/
 ```
 
-### Option 2: Run pipeline from assembled contigs
+---
+
+### 2.3 Option 2: Run pipeline from assembled contigs
 
 This option is intended for users who have already performed metagenomic assembly using an external assembly tool. POEM skips the assembly stage and begins with gene prediction on the supplied contigs, followed by all subsequent pipeline stages.
 
@@ -126,7 +130,9 @@ This option is intended for users who have already performed metagenomic assembl
 |---|---|---|
 | `--model <name>` | Operon prediction classifier | `all_species` |
 
-### Option 3: Run pipeline from existing gene predictions
+---
+
+### 2.4 Option 3: Run pipeline from existing gene predictions
 
 This option is intended for users who have already performed metagenomic assembly and gene prediction using external tools. POEM skips both assembly and gene prediction, allowing users to retain their existing gene annotations and protein translations.
 
@@ -155,7 +161,9 @@ This option is intended for users who have already performed metagenomic assembl
 
 The GFF and protein FASTA files must correspond to the same assembled contigs. Both annotation and protein translation files must be provided. POEM standardizes identifiers for downstream processing.
 
-### Running individual pipeline stages
+---
+
+### 2.5 Running individual pipeline stages
 
 POEM supports independent execution of individual pipeline stages,
 allowing users to run specific analyses, resume an existing analysis,
@@ -195,7 +203,9 @@ To select an alternative operon prediction classifier:
 Stage-wise execution requires the corresponding upstream input files
 to be available.
 
-### Command-line help
+--- 
+
+### 2.6 Command-line help
 
 POEM provides command-line help for both full pipeline execution and
 individual pipeline stages.
