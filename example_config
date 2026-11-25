@@ -5,8 +5,8 @@ prediction_dir=$SCRIPTPATH
 
 output_dir=$SCRIPTPATH/example_data/output_example
 
-input_path1=$SCRIPTPATH/example_data/input_data/eco_51.fq
-input_path2=$SCRIPTPATH/example_data/input_data/eco_52.fq
+input_path1=$SCRIPTPATH/data/test_data/eco_51.fq
+input_path2=$SCRIPTPATH/data/test_data/eco_52.fq
 
 # megahit_output_path=$SCRIPTPATH/example_data/output/assembly_output/megahit_output
 
