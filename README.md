@@ -419,3 +419,13 @@ To visualize these networks, import either CSV file into Cytoscape using **File 
 Users can filter networks by `community_id` or `core_id` and customize node appearance, edge weights, and network layouts.
 
 Cytoscape visualization does not require launching POEM's built-in visualization interface.
+
+## 6. Contact
+
+For questions, comments, feedback, or issues related to POEM, please contact:
+
+- **Priyanka Banerjee**
+  - Email: [pb11@iastate.edu](mailto:pb11@iastate.edu)
+  - Alternate email: [banerjee.p1104@gmail.com](mailto:banerjee.p1104@gmail.com)
+
+Users are also encouraged to report software issues or suggest improvements through the GitHub Issues section of this repository.
