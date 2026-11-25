@@ -1,0 +1,139 @@
+{
+  "default_model": "monocytogenes_rf_full.pkl",
+  "feature_columns": [
+    "gene1_border_comp_ratio_for",
+    "gene2_border_comp_ratio_for",
+    "gene1_border_comp_ratio_rev",
+    "gene2_border_comp_ratio_rev",
+    "igd",
+    "gene_ratio"
+  ],
+  "border_size": 25,
+  "min_repeat_len": 4,
+  "random_forest_parameters": {
+    "n_estimators": 200,
+    "random_state": 42,
+    "n_jobs": -1
+  },
+  "scikit_learn_version": "1.6.1",
+  "models": {
+    "ecoli": {
+      "file": "ecoli_rf_full.pkl",
+      "training_species": [
+        "ecoli"
+      ],
+      "training_rows": 1369,
+      "class_counts": {
+        "1": 707,
+        "0": 662
+      }
+    },
+    "bsub": {
+      "file": "bsub_rf_full.pkl",
+      "training_species": [
+        "bsub"
+      ],
+      "training_rows": 291,
+      "class_counts": {
+        "1": 153,
+        "0": 138
+      }
+    },
+    "glutamicum": {
+      "file": "glutamicum_rf_full.pkl",
+      "training_species": [
+        "glutamicum"
+      ],
+      "training_rows": 1359,
+      "class_counts": {
+        "1": 696,
+        "0": 663
+      }
+    },
+    "pylori": {
+      "file": "pylori_rf_full.pkl",
+      "training_species": [
+        "pylori"
+      ],
+      "training_rows": 759,
+      "class_counts": {
+        "1": 451,
+        "0": 308
+      }
+    },
+    "pneumophila": {
+      "file": "pneumophila_rf_full.pkl",
+      "training_species": [
+        "pneumophila"
+      ],
+      "training_rows": 1201,
+      "class_counts": {
+        "0": 636,
+        "1": 565
+      }
+    },
+    "monocytogenes": {
+      "file": "monocytogenes_rf_full.pkl",
+      "training_species": [
+        "monocytogenes"
+      ],
+      "training_rows": 1264,
+      "class_counts": {
+        "1": 659,
+        "0": 605
+      }
+    },
+    "profundum": {
+      "file": "profundum_rf_full.pkl",
+      "training_species": [
+        "profundum"
+      ],
+      "training_rows": 952,
+      "class_counts": {
+        "0": 567,
+        "1": 385
+      }
+    },
+    "aeruginosa": {
+      "file": "aeruginosa_rf_full.pkl",
+      "training_species": [
+        "aeruginosa"
+      ],
+      "training_rows": 81,
+      "class_counts": {
+        "1": 43,
+        "0": 38
+      }
+    },
+    "pneumoniae": {
+      "file": "pneumoniae_rf_full.pkl",
+      "training_species": [
+        "pneumoniae"
+      ],
+      "training_rows": 271,
+      "class_counts": {
+        "1": 153,
+        "0": 118
+      }
+    },
+    "all_species": {
+      "file": "all_species_rf_full.pkl",
+      "training_species": [
+        "ecoli",
+        "bsub",
+        "glutamicum",
+        "pylori",
+        "pneumophila",
+        "monocytogenes",
+        "profundum",
+        "aeruginosa",
+        "pneumoniae"
+      ],
+      "training_rows": 7547,
+      "class_counts": {
+        "1": 3812,
+        "0": 3735
+      }
+    }
+  }
+}

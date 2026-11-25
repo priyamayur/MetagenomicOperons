@@ -20,10 +20,12 @@ show_usage() {
 POEM - Operon Prediction and Processing
 
 Usage:
-  ./poem -s predict-operons -o <poem_results_dir>
+  ./poem -s predict-operons -o <poem_results_dir> [--model <name>]
 
 Arguments:
   -o <directory>  Root directory for POEM pipeline results
+  --model <name>  Classifier name from model_manifest.json
+                  Default: monocytogenes. Use all_species for the pooled model.
   -h, --help      Show this help message
 
 Use the same results directory as the earlier stages. POEM predicts
@@ -46,6 +48,7 @@ EOF
 gene_coordinates=""
 assembled_file=""
 output_folder=""
+operon_model="monocytogenes"
 
 
 # ==================================================
@@ -56,7 +59,7 @@ while [[ $# -gt 0 ]]; do
 
     case "$1" in
 
-        -gc|-af|-o)
+        -gc|-af|-o|--model)
             if [ $# -lt 2 ] || [[ "$2" == -* ]]; then
                 echo "Error: Missing value for $1"
                 exit 1
@@ -66,6 +69,7 @@ while [[ $# -gt 0 ]]; do
                 -gc) gene_coordinates="$2" ;;
                 -af) assembled_file="$2" ;;
                 -o) output_folder="$2" ;;
+                --model) operon_model="$2" ;;
             esac
 
             shift 2
@@ -118,15 +122,6 @@ if [ -z "$output_folder" ]; then
     exit 1
 fi
 
-model_file="${operon_model_path}/ecoli_rf_full_v2.pkl"
-
-if [ ! -s "$model_file" ]; then
-    echo "Error: Operon prediction model not found:"
-    echo "  $model_file"
-    exit 1
-fi
-
-
 # ==================================================
 # 6. Prepare output directory
 # ==================================================
@@ -140,7 +135,7 @@ echo ""
 echo "POEM - Starting operon prediction"
 echo "Gene coordinates: $gene_coordinates"
 echo "Assembled contigs: $assembled_file"
-echo "Prediction model: $model_file"
+echo "Prediction model: $operon_model"
 echo "Output directory: $output_folder"
 echo ""
 
@@ -151,11 +146,13 @@ echo ""
 
 python "$script_path/predict_operons.py" \
     -g "$gene_coordinates" \
-    -m "$model_file" \
+    --model-manifest "${operon_model_path}/model_manifest.json" \
+    --model-name "$operon_model" \
     -af "$assembled_file" \
     -o "$output_folder" || {
-        echo "Error: Operon prediction failed."
-        exit 1
+        status=$?
+        echo "Error: Operon prediction failed." >&2
+        exit "$status"
     }
 
 
