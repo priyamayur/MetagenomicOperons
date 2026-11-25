@@ -354,13 +354,67 @@ edge files.
 
 ## 5. Visualization
 
-POEM includes an interactive interface for exploring predicted core operons and their COG associations.
+POEM provides two approaches for visualizing identified Leiden
+communities and predicted core operons:
 
-To launch visualization independently:
+- Interactive visualization using POEM's built-in interface.
+- Independent network visualization using Cytoscape.
+
+---
+
+### 5.1 Interactive visualization using POEM
+
+POEM includes an interactive web-based visualization interface built
+using Dash. The interface allows users to explore the identified
+Leiden communities and predicted core operons without requiring
+additional network visualization software.
+
+To launch the visualization interface independently, run:
 
 ```bash
 ./poem -s visualize-core-operon -o results/
 ```
 
-Open the local URL displayed in the terminal to view the interactive network.
+The visualization stage uses the results available in
+`core_operon_output/`.
 
+Open the local URL displayed in the terminal in a web browser
+to access the interactive interface.
+
+**Visualization features:**
+
+- Explore identified Leiden communities.
+- Explore individual predicted core operons.
+- Visualize COGs as nodes and their associations as weighted edges.
+- Examine raw co-operonic association counts and Fisher edge weights.
+- Filter predicted core operons by size.
+- Filter predicted core operons by core-operon score.
+
+#### Example visualization
+
+The following screenshot illustrates POEM's built-in interactive
+visualization interface for exploring Leiden communities and
+predicted core operons.
+
+<p align="center">
+  <img src="images/poem_visualization.png" width="95%">
+</p>
+
+<p align="center">
+  <em>POEM's interactive visualization interface.</em>
+</p>
+---
+### 5.2 Network visualization using Cytoscape
+
+POEM exports two network edge files in `core_operon_output/` that can be independently imported into [Cytoscape](https://cytoscape.org/):
+
+- `community_edges.csv`: Weighted COG associations within identified Leiden communities.
+- `core_operon_edges.csv`: Weighted COG associations within predicted core operons.
+
+Both files include raw co-operonic association counts, Fisher edge weights, and normalized Fisher edge weights.
+
+To visualize these networks, import either CSV file into Cytoscape using **File → Import → Network from File**, and assign the `source` and `target` columns as the source and target nodes, respectively.
+
+Users can filter networks by `community_id` or `core_id` and customize node appearance, edge weights, and network layouts.
+
+Cytoscape visualization does not require launching POEM's built-in visualization interface.

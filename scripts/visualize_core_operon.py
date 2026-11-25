@@ -477,7 +477,7 @@ def create_app(networks, cores, descriptions):
 
     app.layout = html.Div([
 
-        html.H2("POEM — Core Operon Explorer"),
+        html.H2("Pipeline for Operon Exploration in Metagenome (POEM)", style={"marginBottom": "12px"}),
 
         # Community and core selection
         html.Div([
