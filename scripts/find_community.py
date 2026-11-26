@@ -179,7 +179,12 @@ def recursive_leiden(G: ig.Graph, res_param=1.5, max_size=50):
     return all_subgraphs
 
 
-def extract_core_operons_max_size(leiden_results, k=3, density_threshold=0.8, max_core_size=10):
+def extract_core_operons_max_size(leiden_results, k=3, density_threshold=0.7, max_core_size=10):
+    if k != 2:
+        raise ValueError("Supplementary Algorithm 3 requires a two-node seed (-k 2).")
+    if max_core_size < 2:
+        raise ValueError("Maximum core size must be at least two.")
+
     rows = []
 
     for cid, comm in enumerate(leiden_results):
@@ -189,57 +194,55 @@ def extract_core_operons_max_size(leiden_results, k=3, density_threshold=0.8, ma
         if len(nodes) < k:
             continue
 
+        seeded = set()
+
         for start in nodes:
-            path = [start]
-            current = start
-
-            # 1. Build initial greedy path
-            for _ in range(k - 1):
-                neighbors = {n: d['weight'] for n, d in G[current].items() if n not in path}
-                if not neighbors:
-                    break
-                nxt = max(neighbors, key=neighbors.get)
-                path.append(nxt)
-                current = nxt
-
-            if len(path) < k:
+            if start in seeded:
                 continue
 
-            # 2. Expand into quasi-clique: Best-node-first selection
-            expanded = set(path)
-            candidates = set(G.nodes()) - expanded
+            # 1. Construct a two-node seed using the highest-weight edge.
+            neighbors = {n: d['weight'] for n, d in G[start].items()
+                         if n != start}
+            if not neighbors:
+                seeded.add(start)
+                continue
 
-            while len(expanded) < max_core_size and candidates:
-                best_node = None
-                best_new_density = -1
+            nxt = max(neighbors, key=neighbors.get)
+            expanded = {start, nxt}
 
-                for node in candidates:
-                    test_set = expanded | {node}
-                    num_nodes = len(test_set)
-                    possible_edges = (num_nodes * (num_nodes - 1)) / 2
-
-                    # Count actual edges in the test set
-                    actual_edges = 0
-                    for u, v in combinations(test_set, 2):
-                        if G.has_edge(u, v):
-                            actual_edges += 1
-
-                    current_density = actual_edges / possible_edges
-
-                    # Update best candidate if it meets threshold and is better than others
-                    if current_density >= density_threshold:
-                        if current_density > best_new_density:
-                            best_new_density = current_density
-                            best_node = node
-
-                if best_node:
-                    expanded.add(best_node)
-                    candidates.remove(best_node)
-                else:
-                    # No more candidates meet the density threshold
+            # 2. Rank neighboring candidates by total edge weight to the core.
+            while len(expanded) < max_core_size:
+                candidates = set().union(*(G.neighbors(n) for n in expanded)) - expanded
+                if not candidates:
                     break
 
-            # 3. Final Scoring and Storage
+                ranked = sorted(
+                    candidates,
+                    key=lambda node: sum(G[node][n]['weight']
+                                         for n in expanded if G.has_edge(node, n)),
+                    reverse=True,
+                )
+
+                added = False
+                for node in ranked:
+                    test_set = expanded | {node}
+                    num_nodes = len(test_set)
+                    possible_edges = num_nodes * (num_nodes - 1) / 2
+                    actual_edges = sum(G.has_edge(u, v)
+                                       for u, v in combinations(test_set, 2))
+                    current_density = actual_edges / possible_edges
+
+                    if current_density >= density_threshold:
+                        expanded.add(node)
+                        added = True
+                        break
+
+                if not added:
+                    break
+
+            seeded.update(expanded)
+
+            # 3. Final scoring and storage (unchanged).
             final_sub = G.subgraph(expanded)
             total_w = sum(d['weight'] for _, _, d in final_sub.edges(data=True))
             final_density = nx.density(final_sub)
